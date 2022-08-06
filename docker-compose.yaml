@@ -1,0 +1,31 @@
+version: '3.3'
+services:
+  my-app:
+    image: postgres:13.7-alpine3.16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: my-app
+  flyway-my-app-schema-migrate:
+    image: flyway/flyway:9.1
+    command: -url=jdbc:postgresql://my-app:5432/my-app -user=postgres -password=postgres -connectRetries=60 migrate
+    volumes:
+      - ./migrations:/flyway/sql:Z
+    depends_on:
+      - my-app
+  flyway-my-app-schema-status:
+    image: flyway/flyway:9.1
+    command: -url=jdbc:postgresql://my-app:5432/my-app -user=postgres -password=postgres -connectRetries=60 info
+    volumes:
+      - ./migrations:/flyway/sql:Z
+    depends_on:
+      - my-app
+  flyway-my-app-schema-validator:
+    image: flyway/flyway:9.1
+    command: -url=jdbc:postgresql://my-app:5432/my-app -user=postgres -password=postgres -connectRetries=60 validate
+    volumes:
+      - ./migrations:/flyway/sql:Z
+    depends_on:
+      - my-app
